@@ -1,4 +1,8 @@
 # examples/Python/Basic/visualization.py
+# Other:
+#  https://stackoverflow.com/questions/65774814/adding-new-points-to-point-cloud-in-real-time-open3d
+
+import argparse
 
 import numpy as np
 import open3d as o3d
@@ -51,6 +55,11 @@ def main(fname_ply):
     o3d.visualization.draw_geometries([line_set])
 
 if __name__ == "__main__":
-    fname_ply = 'Open3D/fragment.ply'
+
+    parser = argparse.ArgumentParser(description="training and testing script")
+    parser.add_argument("--file_name", default="Open3D/fragment.ply", help="name of the point cloud file (ply,pcd)")
+
+    args = parser.parse_args()
+    fname_ply = args.file_name #'Open3D/fragment.ply'
     main(fname_ply=fname_ply)
 
