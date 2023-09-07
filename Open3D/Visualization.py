@@ -3,24 +3,32 @@
 import numpy as np
 import open3d as o3d
 
-if __name__ == "__main__":
-
-    print("Load a ply point cloud, print it, and render it")
-    pcd = o3d.io.read_point_cloud("../../TestData/fragment.ply")
+def main(fname_ply):
+    """ 
+    Example of visualization program with Open3D
+    Args:
+        - **fname_ply*: Filename with ply data
+    """
+    try:
+        print("Load a ply point cloud, print it, and render it")
+        pcd = o3d.io.read_point_cloud(fname_ply)
+    except:
+        print(f'Failed to open:{fname_ply}')
+        return
     o3d.visualization.draw_geometries([pcd])
 
     print("Let\'s draw some primitives")
-    mesh_box = o3d.geometry.create_mesh_box(width=1.0, height=1.0, depth=1.0)
+    mesh_box = o3d.geometry.TriangleMesh.create_box(width=1.0, height=1.0, depth=1.0)
     mesh_box.compute_vertex_normals()
     mesh_box.paint_uniform_color([0.9, 0.1, 0.1])
-    mesh_sphere = o3d.geometry.create_mesh_sphere(radius=1.0)
+    mesh_sphere = o3d.geometry.TriangleMesh.create_sphere(radius=1.0)
     mesh_sphere.compute_vertex_normals()
     mesh_sphere.paint_uniform_color([0.1, 0.1, 0.7])
-    mesh_cylinder = o3d.geometry.create_mesh_cylinder(radius=0.3, height=4.0)
+    mesh_cylinder = o3d.geometry.TriangleMesh.create_cylinder(radius=0.3, height=4.0)
     mesh_cylinder.compute_vertex_normals()
     mesh_cylinder.paint_uniform_color([0.1, 0.9, 0.1])
-    mesh_frame = o3d.geometry.create_mesh_coordinate_frame(size=0.6,
-                                                           origin=[-2, -2, -2])
+    mesh_frame = o3d.geometry.TriangleMesh.create_coordinate_frame(size=0.6,
+                                                        origin=[-2, -2, -2])
 
     print("We draw a few primitives using collection.")
     o3d.visualization.draw_geometries(
@@ -41,3 +49,8 @@ if __name__ == "__main__":
     line_set.lines = o3d.utility.Vector2iVector(lines)
     line_set.colors = o3d.utility.Vector3dVector(colors)
     o3d.visualization.draw_geometries([line_set])
+
+if __name__ == "__main__":
+    fname_ply = 'Open3D/fragment.ply'
+    main(fname_ply=fname_ply)
+
