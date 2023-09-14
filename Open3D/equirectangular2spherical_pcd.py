@@ -1,0 +1,85 @@
+# http://www.paul-reed.co.uk/programming.html
+# https://paulbourke.net/panorama/icosahedral/
+# https://github.com/rdbch/icosahedral_sampler
+
+import numpy as np
+import math
+import open3d as o3d
+from PIL import Image
+
+def uv2xyz(image_size, bin):
+    """
+    It converts the content of the data structure from image pixels to cartesian coordinates
+    Args:
+        - **image_size**-: Size of the image source (WH). i.e. (640,480).
+        - **bin**: Points binning
+    Removed:
+        - **data**: Container with the pixel points (2D) to transform.
+
+    The function expects to return  data in the format HWC (height,width,channels)
+    Channel 0 will contain the position in X.
+    Channel 1 will contain the position in Y.
+    Channel 2 will contain the position in Z.
+    """
+    data = np.zeros((image_size[1], image_size[0], 3))
+    for i in range(image_size[1]):
+        for j in range(image_size[0]):
+            # convert in uv -> spherical -> cartesian coordinates
+            u = float(j) / image_size[0]
+            v = float(i) / image_size[1]
+            theta = u * 2.0 * math.pi
+            phi = v * math.pi
+
+            x = math.cos(theta) * math.sin(phi)
+            y = math.sin(theta) * math.sin(phi)
+            z = math.cos(phi)
+            data[i, j, 0] = x
+            data[i, j, 1] = y
+            data[i, j, 2] = z
+    return data
+
+def main(fname_in_img, fname_out_pcd):
+    """
+    Create a pcd file from image file.
+    Args:
+        - **fname_in_img*: Filename with the image.
+        - **fname_out_pcd*: Filename where to save the pcd file.
+    Note: The image is rotated 90 degrees anticlockwise.
+    """
+    # Load an image
+    img = Image.open(fname_in_img)
+    # Convert in numpy format
+    img_array = np.array(img)
+
+    # Create a numpy array of point cloud data with the same shape as the image
+    # The output is in the range [0,1[
+    #data = np.zeros((img_array.shape[0], img_array.shape[1], 3))
+    #for i in range(img_array.shape[0]):
+    #    for j in range(img_array.shape[1]):
+    #        data[i, j, 0] = i / img_array.shape[0]
+    #        data[i, j, 1] = j / img_array.shape[1]
+    #        data[i, j, 2] = 0 # Fix z on the origin
+    data = uv2xyz((img_array.shape[1], img_array.shape[0]), 1)
+
+    # Reshape the point cloud data into a 2D array
+    data = data.reshape(-1, 3)
+
+    # Create a PointCloud object
+    pc = o3d.geometry.PointCloud()
+
+    # Set the point cloud data
+    pc.points = o3d.utility.Vector3dVector(data)
+
+    # Reshape the image data into a 2D array
+    data_color = img_array.reshape(-1, 3)
+
+    # Set the RGB colors for each point in the point cloud
+    pc.colors = o3d.utility.Vector3dVector(data_color / 255)
+
+    # Save the PointCloud object to a PCD file
+    o3d.io.write_point_cloud(fname_out_pcd, pc)
+
+if __name__ == "__main__":
+    fname_img = 'data/equirect001.jpeg'
+    fname_out = 'Open3D/result.pcd'
+    main(fname_in_img=fname_img, fname_out_pcd=fname_out)
