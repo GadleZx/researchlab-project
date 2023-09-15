@@ -1,0 +1,2 @@
+frame_sample.jpg snowboarder 1637 993 1957 1353
+frame_sample.jpg snowboarder 3893 1045 4061 1277

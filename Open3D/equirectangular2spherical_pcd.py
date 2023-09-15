@@ -2,8 +2,10 @@
 # https://paulbourke.net/panorama/icosahedral/
 # https://github.com/rdbch/icosahedral_sampler
 
-import numpy as np
 import math
+import argparse
+
+import numpy as np
 import open3d as o3d
 from PIL import Image
 
@@ -22,8 +24,8 @@ def uv2xyz(image_size, bin):
     Channel 2 will contain the position in Z.
     """
     data = np.zeros((image_size[1], image_size[0], 3))
-    for i in range(image_size[1]):
-        for j in range(image_size[0]):
+    for i in range(0, image_size[1], bin):
+        for j in range(0, image_size[0], bin):
             # convert in uv -> spherical -> cartesian coordinates
             u = float(j) / image_size[0]
             v = float(i) / image_size[1]
@@ -38,12 +40,13 @@ def uv2xyz(image_size, bin):
             data[i, j, 2] = z
     return data
 
-def main(fname_in_img, fname_out_pcd):
+def main(fname_in_img, fname_out_pcd, bin):
     """
     Create a pcd file from image file.
     Args:
         - **fname_in_img*: Filename with the image.
         - **fname_out_pcd*: Filename where to save the pcd file.
+        - **bin**: Point cloud binning.
     Note: The image is rotated 90 degrees anticlockwise.
     """
     # Load an image
@@ -59,7 +62,7 @@ def main(fname_in_img, fname_out_pcd):
     #        data[i, j, 0] = i / img_array.shape[0]
     #        data[i, j, 1] = j / img_array.shape[1]
     #        data[i, j, 2] = 0 # Fix z on the origin
-    data = uv2xyz((img_array.shape[1], img_array.shape[0]), 1)
+    data = uv2xyz((img_array.shape[1], img_array.shape[0]), bin)
 
     # Reshape the point cloud data into a 2D array
     data = data.reshape(-1, 3)
@@ -80,6 +83,14 @@ def main(fname_in_img, fname_out_pcd):
     o3d.io.write_point_cloud(fname_out_pcd, pc)
 
 if __name__ == "__main__":
-    fname_img = 'data/equirect001.jpeg'
-    fname_out = 'Open3D/result.pcd'
-    main(fname_in_img=fname_img, fname_out_pcd=fname_out)
+
+    parser = argparse.ArgumentParser(description="training and testing script")
+    parser.add_argument("--file_image", default='data/equirect001.jpeg', help="name of the equirectangular image.")
+    parser.add_argument("--file_out", default='Open3D/result.pcd', help="name of the point cloud file (ply,pcd)")
+    parser.add_argument("--bin", default=10, help="Int point cloud binning. Higher is the value, sparser the points.")
+
+    args = parser.parse_args()
+    fname_img = args.file_image
+    fname_out = args.file_out
+    bin = args.bin
+    main(fname_in_img=fname_img, fname_out_pcd=fname_out, bin=bin)
