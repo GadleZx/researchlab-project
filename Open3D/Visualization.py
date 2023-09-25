@@ -19,7 +19,9 @@ def main(fname_ply):
     except:
         print(f'Failed to open:{fname_ply}')
         return
-    o3d.visualization.draw_geometries([pcd])
+    mesh_frame = o3d.geometry.TriangleMesh.create_coordinate_frame(size=0.6,
+                                                        origin=[-2, -2, -2])
+    o3d.visualization.draw_geometries([pcd, mesh_frame])
 
     print("Let\'s draw some primitives")
     mesh_box = o3d.geometry.TriangleMesh.create_box(width=1.0, height=1.0, depth=1.0)

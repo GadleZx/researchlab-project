@@ -161,3 +161,6 @@ cython_debug/
 
 # Custom files
 Open3D/result.pcd
+
+# Custom folder
+data/result

@@ -27,4 +27,11 @@ or (default data)
 python Open3D/Visualization.py
 ```
 
+## Create Frames and update poses
+
+```Console
+python VideoProcessing/1.ImagesFromVideo.py --video_in=./data/data_002.mp4 --path_out=data/result/ --step=10
+python VideoProcessing/2.Frames2Spherical.py --path_frames_folder=data/result/ --path_trajectory=data/log_pose/frame_trajectory.txt --video_fps=30
+python Open3D/Visualization.py --file_name="Open3D/result.pcd"
+```
 
