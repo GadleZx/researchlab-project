@@ -33,7 +33,7 @@ while True:
     if not ret:
         break  # 動画の最後に達したらループを終了
         
-    frame_counter = frame_counter + 1
+    frame_counter += 1
 
     # 各フレームごとにframe_colorを初期化
     frame_color = (0, 0, 255)  # 初期値は赤色
@@ -41,7 +41,7 @@ while True:
     # バウンディングボックスの情報をリセット
     change_frame_color = False
     
-    print(f'frame:{frame.shape}')
+    #print(f'frame:{frame.shape}')
 
     # 各テキストファイルに対して処理を行います
     #for bbox_file in bbox_file_list:
@@ -74,10 +74,8 @@ while True:
             # バウンディングボックスの下の座標が直線よりも下にある場合、枠の色を赤に変更
             if lowest_bbox_bottom_y < line_y:
                 frame_color = (0, 255, 0)  # 緑色
-                print("low")
             else:
                 frame_color = (0, 0, 255)  # 赤色
-                print("high")
 
     # 4つの直線をフレームに描画
     top_line_y = 0
