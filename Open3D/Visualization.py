@@ -20,7 +20,7 @@ def main(fname_ply):
         print(f'Failed to open:{fname_ply}')
         return
     mesh_frame = o3d.geometry.TriangleMesh.create_coordinate_frame(size=0.6,
-                                                        origin=[-2, -2, -2])
+                                                        origin=[0, 0, 0])
     o3d.visualization.draw_geometries([pcd, mesh_frame])
 
     print("Let\'s draw some primitives")

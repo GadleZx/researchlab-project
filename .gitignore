@@ -164,3 +164,6 @@ Open3D/result.pcd
 
 # Custom folder
 data/result
+data/tracking_data_002
+data/log_pose
+data/labels_data_002

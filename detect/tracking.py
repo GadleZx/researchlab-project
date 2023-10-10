@@ -4,13 +4,13 @@ import numpy
 import random
 
 # 入力動画ファイルのパス
-input_video_path = "../norfair/demos/camera_motion/src/data_002.mp4"
+input_video_path = "data/data_002.mp4"
 
 # 出力動画ファイルのパス
 output_video_path = "track_output_video.mp4"
 
 # テキストファイルが格納されているディレクトリのパス
-text_files_directory = "../norfair/demos/camera_motion/src/output_data_frames/"
+text_files_directory = "data/tracking_data_002/"
 
 # OpenCVを使用して入力動画を読み込み
 input_video = cv2.VideoCapture(input_video_path)

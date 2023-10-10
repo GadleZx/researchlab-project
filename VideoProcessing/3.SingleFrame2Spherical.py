@@ -23,7 +23,12 @@ def frame2pc_and_transform(path_img, pose):
     if img is None:
         print(f'[-] Open:{path_img}')
         return
-    pc = image2pointcloud(img, 5, 'uv')
+    else:
+        print(f'[+] Open:{path_img}')
+    cv2.line(img, (0,800), (1920,800), (255,0,255),2)
+    cv2.imshow('img', img)
+    cv2.waitKey(0)
+    pc = image2pointcloud(img, 1, 'image_uv')
 
     # Get the pointd data as numpy
     # From Open3D to numpy
@@ -31,7 +36,7 @@ def frame2pc_and_transform(path_img, pose):
     print(f'np_points:{np_points.shape}')
 
     # scale down the points size for better visualization (optional)
-    np_points *= 0.1
+    np_points *= 1.0
 
     # Transform the position
     # https://docs.scipy.org/doc/scipy/reference/generated/scipy.spatial.transform.Rotation.html
@@ -40,17 +45,18 @@ def frame2pc_and_transform(path_img, pose):
     np_points = r.apply(np_points)
 
     # Apply the camera pose rotation
-    r = R.from_quat(pose[3:])
-    print(f'r:{r}')
-    np_points = r.apply(np_points)
+    #r = R.from_quat(pose[3:])
+    #print(f'r:{r}')
+    #np_points = r.apply(np_points)
     #print(f'np_pointsA:{np_points[100]}') # debug only
 
-    t = np.asarray(pose[:3])
-    print(f't:{t}')
+    # translate
+    #t = np.asarray(pose[:3])
+    #print(f't:{t}')
     #for i in range(0, np_points.shape[0]):
     #    for k in range(0, np_points.shape[1]):
     #        np_points[i,k] = np_points[i,k] + t[k]
-    np_points[:,:] = np_points[:,:] + t  # equivalent to the above code
+    #np_points[:,:] = np_points[:,:] + t  # equivalent to the above code
     #print(f'np_pointsB:{np_points[100]}') # debug only
 
     # get the colors
@@ -115,6 +121,7 @@ def compute_frames(path_frames_folder, path_trajectory, video_fps):
             # collect all the points and color
             np_points.append(np_points_tmp)
             np_colors.append(np_colors_tmp)
+            break
 
     # concatenate points and colors
     np_points_all = np.concatenate(np_points, axis=0)
