@@ -25,6 +25,12 @@ python Open3D/Visualization.py --file_name="Open3D/result.pcd"
 or (default data)
 
 python Open3D/Visualization.py
+
+or(bird view)
+
+python Open3D/bird_view.py
+python Open3D/Visualization.py --file_name="Open3D/result.pcd"
+
 ```
 
 ## Create Frames and update poses
