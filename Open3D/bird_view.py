@@ -32,26 +32,6 @@ def uv2xyz(image_size, step):
             data[i, j, 2] = z
     return data
 
-def xyz2uv(data, image_size, step):
-    new_uvs = []
-    for i in range(data.shape[0]):
-        for j in range(data.shape[1]):
-            x, y, z = data[i, j]
-
-            theta = math.atan2(y, x)
-            phi = math.acos(z)
-            new_phi = phi + (math.pi / 2.0)
-
-            new_u = theta / (2.0 * math.pi)
-            new_v = new_phi / math.pi
-
-            new_pixel_u = int(new_u * image_size[0] / step)
-            new_pixel_v = int(new_v * image_size[1] / step)
-
-            new_uvs.append((new_pixel_u, new_pixel_v))
-
-    return new_uvs
-
 def main(fname_in_img, fname_out_pcd):
     # Load an image
     img = Image.open(fname_in_img)
@@ -59,9 +39,6 @@ def main(fname_in_img, fname_out_pcd):
 
     # Create a numpy array of point cloud data using uv2xyz
     data = uv2xyz((img_array.shape[1], img_array.shape[0]), 1)
-
-    # Use xyztouv to transform the data
-    new_uvs = xyz2uv(data, (img_array.shape[1], img_array.shape[0]), 1)
 
     # Create a PointCloud object
     pc = o3d.geometry.PointCloud()
