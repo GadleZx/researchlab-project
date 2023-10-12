@@ -27,6 +27,12 @@ def uv2xyz(image_size, step):
             y = math.sin(theta) * math.sin(phi)
             z = math.cos(phi)
 
+            if z > 0.0:
+                x = 0
+                y = 0
+                z = 0
+            z = 0
+
             data[i, j, 0] = x
             data[i, j, 1] = y
             data[i, j, 2] = z
