@@ -46,3 +46,7 @@ python VideoProcessing/3.SingleFrame2Spherical.py --path_frames_folder=data/resu
 python Open3D/Visualization.py --file_name="Open3D/result.pcd"
 ```
 
+## Cubemap
+
+Convert 360degrees images.
+https://github.com/sunset1995/py360convert/tree/master
