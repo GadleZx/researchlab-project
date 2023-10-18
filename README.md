@@ -46,6 +46,15 @@ python VideoProcessing/3.SingleFrame2Spherical.py --path_frames_folder=data/resu
 python Open3D/Visualization.py --file_name="Open3D/result.pcd"
 ```
 
+## Projection
+
+Visualize a projection from a sample equirectangular image
+
+```Console
+python Open3D/equirectangular2spherical_pcd2.py --file_image=data/frame_sample.jpg --step=1
+python Open3D/Visualization.py --file_name="Open3D/result.pcd"
+```
+
 ## Cubemap
 
 Convert 360degrees images.

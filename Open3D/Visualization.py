@@ -22,6 +22,7 @@ def main(fname_ply):
     mesh_frame = o3d.geometry.TriangleMesh.create_coordinate_frame(size=0.6,
                                                         origin=[0, 0, 0])
     o3d.visualization.draw_geometries([pcd, mesh_frame])
+    return
 
     print("Let\'s draw some primitives")
     mesh_box = o3d.geometry.TriangleMesh.create_box(width=1.0, height=1.0, depth=1.0)
