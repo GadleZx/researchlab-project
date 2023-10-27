@@ -35,6 +35,10 @@ python Open3D/Visualization.py --file_name="Open3D/result.pcd"
 
 ## Create Frames and update poses
 
+
+Clone the project  
+Unzip the zip files in the data folder 
+
 ```Console
 python VideoProcessing/1.ImagesFromVideo.py --video_in=./data/data_002.mp4 --path_out=data/result/ --step=10
 python VideoProcessing/2.Frames2Spherical.py --path_frames_folder=data/result/ --path_trajectory=data/log_pose_data_002/frame_trajectory.txt --video_fps=30
@@ -45,6 +49,8 @@ python Open3D/Visualization.py --file_name="Open3D/result.pcd"
 python VideoProcessing/3.SingleFrame2Spherical.py --path_frames_folder=data/result/ --path_trajectory=data/log_pose_data_002/frame_trajectory.txt --video_fps=30
 python Open3D/Visualization.py --file_name="Open3D/result.pcd"
 ```
+
+
 
 ## Projection
 
@@ -59,3 +65,13 @@ python Open3D/Visualization.py --file_name="Open3D/result.pcd"
 
 Convert 360degrees images.
 https://github.com/sunset1995/py360convert/tree/master
+
+
+## Top View
+
+Slow processing
+
+```Console
+python Open3D/equirectangular2topview.py --file_image=data/frame_sample.jpg --step=1
+python Open3D/Visualization.py --file_name="Open3D/result.pcd"
+```
