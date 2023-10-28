@@ -201,6 +201,34 @@ def apply_camera_matrix(point_cloud, projection_matrix):
   return projected_point_cloud
 
 
+def transform_points(roto_translation_matrix, points):
+  """Transform 3D points in 3D
+
+  Args:
+    roto_translation_matrix: A 4x4 NumPy array representing the rotation-translation matrix.
+    projection_matrix: A 4x4 NumPy array representing the projection matrix.
+    points: A Nx3 NumPy array representing the 3D points.
+
+  Returns:
+    A Nx3 NumPy array representing the transformed 3D points.
+  """
+
+  #print('#####################################')
+  #print(f'roto_translation_matrix:{roto_translation_matrix}')
+  #print(f'projection_matrix:{projection_matrix}')
+  #print(f'points:{points}')
+
+  # Add a fourth column to the point cloud data to represent the homogeneous coordinate.
+  point_cloud_with_homogeneous_coordinate = np.hstack([points, np.ones((points.shape[0], 1))])  
+
+  #print(f'point_cloud_with_homogeneous_coordinate:{point_cloud_with_homogeneous_coordinate}')
+
+  # Transform the 3D points by the rotation-translation matrix.
+  transformed_points = point_cloud_with_homogeneous_coordinate @ roto_translation_matrix
+
+  # Remove the last dimension
+  return transformed_points[:, :3]
+
 
 def project_points(roto_translation_matrix, projection_matrix, points):
   """Projects 3D points into 2D pixel coordinates using the given parameters.
