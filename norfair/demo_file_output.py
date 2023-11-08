@@ -27,7 +27,7 @@ import cv2
 device = torch.device("cuda")
 
 # テキストファイルへの出力を行うためのファイルハンドルを追加
-output_dir = "output_data_frames_test"  # テキストファイルを保存するディレクトリ名
+output_dir = "output_data_frames"  # テキストファイルを保存するディレクトリ名
 
 def uv2xyz(data_in, image_size):
     """Convert u,v coordinates to x,y,z with this function."""
