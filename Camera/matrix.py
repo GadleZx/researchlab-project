@@ -1,6 +1,6 @@
 import numpy as np
 
-def func_rotation_matrix(x, y, z):
+def func_rotation_matrix_old(x, y, z):
   """Generates a rotation matrix from a tuple of 3 values (x, y, z).
 
   Args:
@@ -38,6 +38,71 @@ def func_rotation_matrix(x, y, z):
 
   return rotation_matrix
 
+def func_rotation_matrix(x, y, z, order='xyz'):
+  """Generates a rotation matrix from a tuple of 3 values (x, y, z).
+
+  Args:
+    x: The x-axis rotation angle in degrees.
+    y: The y-axis rotation angle in degrees.
+    z: The z-axis rotation angle in degrees.
+
+  Returns:
+    A 4x4 NumPy array representing the rotation matrix.
+  """
+
+  # Convert the rotation angles to radians.
+  x_rad = np.radians(x)
+  y_rad = np.radians(y)
+  z_rad = np.radians(z)
+
+  # Create the rotation matrices for each axis.
+  rx = np.array([[1, 0, 0, 0],
+                  [0, np.cos(x_rad), -np.sin(x_rad), 0],
+                  [0, np.sin(x_rad), np.cos(x_rad), 0],
+                  [0, 0, 0, 1]])
+
+  ry = np.array([[np.cos(y_rad), 0, np.sin(y_rad), 0],
+                  [0, 1, 0, 0],
+                  [-np.sin(y_rad), 0, np.cos(y_rad), 0],
+                  [0, 0, 0, 1]])
+
+  rz = np.array([[np.cos(z_rad), -np.sin(z_rad), 0, 0],
+                  [np.sin(z_rad), np.cos(z_rad), 0, 0],
+                  [0, 0, 1, 0],
+                  [0, 0, 0, 1]])
+
+  # Multiply the rotation matrices to get the combined rotation matrix.
+  if order == 'xyz':
+    rotation_matrix = rx @ ry @ rz
+  elif order == 'zyx':
+    rotation_matrix = rz @ ry @ rx
+
+  return rotation_matrix
+
+
+
+def invert_rotation_matrix(matrix):
+    """
+    Invert a 4x4 rotation matrix in NumPy.
+
+    Parameters:
+    matrix (numpy.ndarray): A 4x4 rotation matrix.
+
+    Returns:
+    numpy.ndarray: The inverted 4x4 rotation matrix.
+    """
+    # Extract the 3x3 rotation matrix
+    rotation_matrix = matrix[:3, :3]
+
+    # Invert the 3x3 rotation matrix
+    inverted_rotation_matrix = np.linalg.inv(rotation_matrix)
+
+    # Create the inverted 4x4 rotation matrix
+    inverted_matrix = np.eye(4)
+    inverted_matrix[:3, :3] = inverted_rotation_matrix
+    inverted_matrix[:3, 3] = -np.dot(inverted_rotation_matrix, matrix[:3, 3])
+
+    return inverted_matrix
 
 def func_rotation_translation_matrix(rotation, translation):
   """Creates a rotation translation matrix from the given parameters.
