@@ -120,6 +120,16 @@ def calculate_plane_normal(point_1, point_2, point_3):
 
     return normal_vector
 
+def is_point_on_plane(point, plane_point, plane_normal):
+    # Calculate the vector from the plane point to the given point
+    vector_to_point = point - plane_point
+
+    # Calculate the projection of the vector onto the plane normal
+    projected_vector = np.dot(vector_to_point, plane_normal) * plane_normal
+
+    # Check if the projected vector is zero
+    return np.allclose(projected_vector, np.zeros(3))
+
 def ray_plane_intersection(ray_origin, ray_direction, plane_point, plane_normal):
     """Calculates the intersection between a ray and a plane.
 

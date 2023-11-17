@@ -18,7 +18,7 @@ from PIL import Image
 import numpy as np
 import cv2
 from Open3D.dictionary import AttrDict
-from Open3D.common import xy2xyz, calculate_plane_normal, xyz2xy
+from Open3D.common import xy2xyz, calculate_plane_normal, is_point_on_plane, xyz2xy
 
 def load_label_danger(path):
     ''' Read a file with the danger interval 
@@ -298,7 +298,7 @@ def circle_points(sphere_center, sphere_radius, plane_point, plane_normal, num_p
         print(f'direction_vector:{direction_vector} d:{np.dot(direction_vector, plane_normal)}')
 
         # Check the sign of the projection to determine the direction of the basis vectors
-        if np.dot(direction_vector, plane_normal) >= 0:
+        if np.dot(direction_vector, plane_normal) > 0:
             # Use the original calculation for u and v
             u = np.cross(plane_normal, direction_vector)
             u /= np.linalg.norm(u)
@@ -306,7 +306,7 @@ def circle_points(sphere_center, sphere_radius, plane_point, plane_normal, num_p
             # Reverse the direction of the basis vectors
             u = -np.cross(plane_normal, direction_vector)
             u /= np.linalg.norm(u)
-            projection = -projection
+            #projection = -projection
 
         # Calculate the second basis vector (v)
         v = np.cross(plane_normal, u)
@@ -318,14 +318,26 @@ def circle_points(sphere_center, sphere_radius, plane_point, plane_normal, num_p
             print("NaN detected in u or v. Switching to default basis.")
             u = np.array([1, 0, 0])
             v = np.array([0, 1, 0])
-            if np.dot(direction_vector, plane_normal) < 0:
-                projection = -projection
+            #if np.dot(direction_vector, plane_normal) < 0:
+            #    projection = -projection
 
         # Calculate the circle points
         circle_points = [
             projection + radius * (np.cos(theta) * u + np.sin(theta) * v)
             for theta in np.linspace(0, 2 * np.pi, num_points, endpoint=False)
         ]
+
+        # check if original point is in the same plane
+        normal = calculate_plane_normal(circle_points[0], circle_points[1], circle_points[2])
+
+        # check if the point is on the same plane of the circle points
+        # if False, invert the projection
+        if is_point_on_plane(plane_point, circle_points[0], normal) is False:
+            # Calculate the circle points with inverted projection
+            circle_points = [
+                -projection + radius * (np.cos(theta) * u + np.sin(theta) * v)
+                for theta in np.linspace(0, 2 * np.pi, num_points, endpoint=False)
+            ]
 
         return circle_points
 
@@ -547,6 +559,8 @@ def process_video(input_video_path, output_video_path, tracking_files_directory,
 # python run/DangerPredictionV2.py --input_video_path='data/data_002.mp4' --output_video_path='' --localizationXY_path='data/localizationXY_cam/data_002_locXY.txt' --tracking_files_directory='data/tracking_data_002/' --label_path='data/danger_data_002.txt' --frame_step=1
 # Save with the image
 # python run/DangerPredictionV2.py --input_video_path='data/data_002.mp4' --output_video_path='danger_output_video_v2.mp4' --localizationXY_path='data/localizationXY_cam/data_002_locXY.txt' --tracking_files_directory='data/tracking_data_002/' --label_path='data/danger_data_002.txt' --frame_step=1
+
+# check if the points are in the same plane
 
 if __name__ == "__main__":
 

@@ -18,7 +18,7 @@ import numpy as np
 import cv2
 
 from dictionary import AttrDict
-from common import create_grid, calculate_plane_normal, uv2xyz, xyz_transform, xyz2mesh, xyz2camera, xy2image, ray_sphere_intersection_v2, direction_vector, xy2xyz, xyz2xy, xyz_transform, intersect_dome, xyz_transformV2, camera2xy
+from common import create_grid, calculate_plane_normal, uv2xyz, xyz_transform, xyz2mesh, xyz2camera, xy2image, ray_sphere_intersection_v2, direction_vector, xy2xyz, xyz2xy, xyz_transform, intersect_dome, xyz_transformV2, camera2xy, is_point_on_plane
 
 
 def ground2image_base(p_ground, sensor_position, sensor_position_at_origin_must_be_0, sensor_orientation_deg, image_size_source):
@@ -261,7 +261,7 @@ def circle_points(sphere_center, sphere_radius, plane_point, plane_normal, num_p
         print(f'direction_vector:{direction_vector} d:{np.dot(direction_vector, plane_normal)}')
 
         # Check the sign of the projection to determine the direction of the basis vectors
-        if np.dot(direction_vector, plane_normal) >= 0:
+        if np.dot(direction_vector, plane_normal) > 0:
             # Use the original calculation for u and v
             u = np.cross(plane_normal, direction_vector)
             u /= np.linalg.norm(u)
@@ -269,7 +269,7 @@ def circle_points(sphere_center, sphere_radius, plane_point, plane_normal, num_p
             # Reverse the direction of the basis vectors
             u = -np.cross(plane_normal, direction_vector)
             u /= np.linalg.norm(u)
-            projection = -projection
+            #projection = -projection
 
         # Calculate the second basis vector (v)
         v = np.cross(plane_normal, u)
@@ -281,8 +281,8 @@ def circle_points(sphere_center, sphere_radius, plane_point, plane_normal, num_p
             print("NaN detected in u or v. Switching to default basis.")
             u = np.array([1, 0, 0])
             v = np.array([0, 1, 0])
-            if np.dot(direction_vector, plane_normal) < 0:
-                projection = -projection
+            #if np.dot(direction_vector, plane_normal) < 0:
+            #    projection = -projection
 
         # Calculate the circle points
         circle_points = [
@@ -290,9 +290,22 @@ def circle_points(sphere_center, sphere_radius, plane_point, plane_normal, num_p
             for theta in np.linspace(0, 2 * np.pi, num_points, endpoint=False)
         ]
 
+        # check if original point is in the same plane
+        normal = calculate_plane_normal(circle_points[0], circle_points[1], circle_points[2])
+
+        # check if the point is on the same plane of the circle points
+        # if False, invert the projection
+        if is_point_on_plane(plane_point, circle_points[0], normal) is False:
+            # Calculate the circle points with inverted projection
+            circle_points = [
+                -projection + radius * (np.cos(theta) * u + np.sin(theta) * v)
+                for theta in np.linspace(0, 2 * np.pi, num_points, endpoint=False)
+            ]
+
         return circle_points
 
 def estimate_circle_intesection_plane_sphere(p0, p1, p2, image_size, num_points):
+    print(p0, p1, p2)
     if p0 is None or p1 is None or p2 is None:
         return None, None, None, None, None
     xyz0 = np.array(xy2xyz(p0[0], p0[1], image_size, 1))
