@@ -122,6 +122,16 @@ https://github.com/tryolabs/norfair
 python norfair/demo_file_output.py --transformation homography --draw-paths --path-history 150 --distance-threshold 200 --track-boxes --max-points=900 --min-distance=14 --save --model yolov5x --hit-counter-max 4 data/data_002.mp4
 ```
 
+## Human pose
+
+third/ViTPose-Pytorch  
+Please, follow the readme.md for the setup
+
+```Console
+Example (path to the video may be different)
+python demo_infer.py
+```
+
 
 ## Link
 
