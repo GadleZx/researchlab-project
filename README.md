@@ -15,10 +15,21 @@ Unzip the zip files in the data folder
 python Open3D/equirectangular2topview_video_V2.py --input_video_path='data/data_002.mp4' --output_video_path='topview_track_output_video.mp4' --output_localizationXY_path='data/localizationXY_cam/data_002_locXY.txt' --tracking_files_directory='data/tracking_data_002/' --frame_step=1 --no-do_image2birdview
 
 python run/DangerPredictionV1.py --input_video_path='data/data_002.mp4' --output_video_path='danger_output_video.mp4' --localizationXY_path='data/localizationXY_cam/data_002_locXY.txt' --tracking_files_directory='data/tracking_data_002/' --label_path='data/danger_data_002.txt' --frame_step=1
+
+python run/DangerPredictionV2.py --input_video_path='data/data_002.mp4' --output_video_path='danger_output_video_v2.mp4' --localizationXY_path='data/localizationXY_cam/data_002_locXY.txt' --tracking_files_directory='data/tracking_data_002/' --label_path='data/danger_data_002.txt' --frame_step=1
 ```
 
 
 ## Open3D
+
+
+Intersection Plane-Sphere
+
+```Console
+python Open3D/equirectangular2topview_V2.py --file_image=data/frame_sample.jpg --step=100 --mode='sphereplane'
+python Open3D/Visualization.py --file_name="Open3D/result.pcd"
+```
+
 
 ```Console
 python Open3D/create_pcd.py 
@@ -110,3 +121,8 @@ https://github.com/tryolabs/norfair
 ```Console
 python norfair/demo_file_output.py --transformation homography --draw-paths --path-history 150 --distance-threshold 200 --track-boxes --max-points=900 --min-distance=14 --save --model yolov5x --hit-counter-max 4 data/data_002.mp4
 ```
+
+
+## Link
+
+[simpy](https://docs.sympy.org/dev/search.html)  
