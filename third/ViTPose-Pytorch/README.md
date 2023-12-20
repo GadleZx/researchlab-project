@@ -14,7 +14,7 @@ mv <weight_path> ~/ViTPose-Pytorch/models/
 If nvidia-tensorrt is not found install nvidia-pyindex first.
 
 ```
-pip3 insltall -r requirements.txt
+pip3 install -r requirements.txt
 ```
 # How to run
 
