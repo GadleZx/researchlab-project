@@ -19,9 +19,6 @@ out = cv2.VideoWriter('data_002_pose.avi',cv2.VideoWriter_fourcc('M','J','P','G'
 with open('pose_data.csv', mode='w', newline='') as file:
     writer = csv.writer(file)
 
-    # CSVファイルのヘッダー（列名）を書き込む
-    writer.writerow(['frame_id', 'tracking_id', 'x', 'y'])
-
     while True:
         ret, frame = vid.read()
         if ret:
@@ -36,15 +33,24 @@ with open('pose_data.csv', mode='w', newline='') as file:
 
             out.write(drawn_frame)
 
-            # 骨格点の座標とトラッキングIDをCSVファイルに書き込む
+            # 骨格点の座標とトラッキングIDを処理
             if pts.size > 0:
+                # トラッキングIDごとに座標を集める
+                tracking_data = {}
                 for pt, tid in zip(pts, tids):
-                    # ptのx座標とy座標を取得してCSVに書き込む
                     x, y = pt[0], pt[1]  # 確信度は無視
-                    writer.writerow([frame_counter, tid, x, y])
+                    if tid not in tracking_data:
+                        tracking_data[tid] = []
+                    tracking_data[tid].append((x, y))
+
+                # 各トラッキングIDとそれに関連する座標をCSVに書き込む
+                for tid, coordinates in tracking_data.items():
+                    coord_str = '; '.join([f"({x}, {y})" for x, y in coordinates])
+                    writer.writerow([frame_counter, tid, coord_str])
 
         else:
             break
+
 
 vid.release()
 out.release()
