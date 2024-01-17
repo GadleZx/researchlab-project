@@ -3,9 +3,9 @@ import cv2
 import csv
 import argparse
 
-def make_keypoint_csv(input_video_path, output_csv_path, output_video_path):
+def make_keypoint_csv(input_video_path, output_csv_path, output_video_path, model_path):
     vid = cv2.VideoCapture(input_video_path)
-    model = VitInference('models/vitpose-b.pth', yolo_path='yolov5n.engine', tensorrt=False)
+    model = VitInference(model_path, yolo_path='yolov5n.engine', tensorrt=False)
     frame_counter = 0
 
     # Default resolutions of the frame are obtained.The default resolutions are system dependent.
@@ -61,10 +61,12 @@ def make_keypoint_csv(input_video_path, output_csv_path, output_video_path):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="training and testing script")
     parser.add_argument("--input_video_path", default='data/data_002.mp4', type=str, help="Video source.")
-    parser.add_argument("--output_csv_path", default='output_keypoint.csv', type=str, help="Output csv")
-    parser.add_argument("--output_video_path", default='output_video_vitpose.mp4', type=str, help="Output video.")
+    parser.add_argument("--output_csv_path", default='third/ViTPose-Pytorch/output_keypoint.csv', type=str, help="Output csv")
+    parser.add_argument("--output_video_path", default='third/ViTPose-Pytorch/output_video_vitpose.mp4', type=str, help="Output video.")
+    parser.add_argument("--model_path", default='third/ViTPose-Pytorch/models/vitpose-b.pth', type=str, help="Model_path.")
+
 
     args = parser.parse_args()
     print(f'args:{args}')
 
-    make_keypoint_csv(input_video_path=args.input_video_path, output_csv_path=args.output_csv_path,output_video_path=args.output_video_path)
+    make_keypoint_csv(input_video_path=args.input_video_path, output_csv_path=args.output_csv_path,output_video_path=args.output_video_path, model_path=args.model_path)
