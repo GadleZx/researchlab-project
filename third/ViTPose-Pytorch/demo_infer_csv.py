@@ -2,6 +2,7 @@ from src.vitpose_infer import VitInference
 import cv2
 import csv
 import argparse
+import json
 
 def make_keypoint_csv(input_video_path, output_csv_path, output_video_path, model_path):
     vid = cv2.VideoCapture(input_video_path)
@@ -20,6 +21,8 @@ def make_keypoint_csv(input_video_path, output_csv_path, output_video_path, mode
     # CSVファイルを開く
     with open(output_csv_path, mode='w', newline='') as file:
         writer = csv.writer(file)
+        # CSVファイルのヘッダーを書き込む
+        writer.writerow(['Frame', 'Track_ID', 'Coordinate'])
 
         while True:
             ret, frame = vid.read()
