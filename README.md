@@ -132,6 +132,11 @@ Example (path to the video may be different)
 python demo_infer.py
 ```
 
+## Human pose make csv
+
+```Console
+python third/ViTPose-Pytorch/demo_infer_csv.py --input_video_path='data/data_002.mp4' --output_csv_path='third/ViTPose-Pytorch/keypoint.csv' --output_video_path='third/ViTPose-Pytorch/vitpose.mp4' --model_path='third/ViTPose-Pytorch/models/vitpose-b.pth'
+```
 
 ## Link
 
