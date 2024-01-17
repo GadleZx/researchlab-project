@@ -138,6 +138,13 @@ python demo_infer.py
 python third/ViTPose-Pytorch/demo_infer_csv.py --input_video_path='data/data_002.mp4' --output_csv_path='third/ViTPose-Pytorch/keypoint.csv' --output_video_path='third/ViTPose-Pytorch/vitpose.mp4' --model_path='third/ViTPose-Pytorch/models/vitpose-b.pth'
 ```
 
+## Frame label make csv
+
+```Console
+python third/ViTPose-Pytorch/frame_label_make_csv.py --input_video_path='data/data_002.mp4' --output_csv_path='third/ViTPose-Pytorch/frame_label.csv' --input_txt_path='data/danger_data_002.txt'
+```
+
+
 ## Link
 
 [simpy](https://docs.sympy.org/dev/search.html)  
