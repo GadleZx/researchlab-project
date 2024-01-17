@@ -33,9 +33,9 @@ def make_frame_csv(input_video_path, input_text_path, output_csv_path):
         frame_labels.append([frame_num, label])
 
     # DataFrameを作成してCSVに保存
-    #df = pd.DataFrame(frame_labels, columns=['Frame', 'Label'])
-    df = pd.DataFrame(frame_labels)
-    df.to_csv(output_csv_path, index=False, header=False)
+    df = pd.DataFrame(frame_labels, columns=['Frame', 'Label'])
+    #df = pd.DataFrame(frame_labels)
+    df.to_csv(output_csv_path, index=False,)
 
     # 動画のキャプチャを解放
     cap.release()
