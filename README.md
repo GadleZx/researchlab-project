@@ -141,7 +141,7 @@ python third/ViTPose-Pytorch/demo_infer_csv.py --input_video_path='data/data_002
 ## Frame label make csv
 
 ```Console
-python third/ViTPose-Pytorch/frame_label_make_csv.py --input_video_path='data/data_002.mp4' --output_csv_path='third/ViTPose-Pytorch/frame_label.csv' --input_txt_path='data/danger_data_002.txt'
+python third/ViTPose-Pytorch/frame_label_make_csv.py --input_video_path='data/data_002.mp4' --output_csv_path='third/ViTPose-Pytorch/frame_label_data_002_slip.csv' --input_txt_path='data/danger_data_002_slip.txt'
 ```
 
 
