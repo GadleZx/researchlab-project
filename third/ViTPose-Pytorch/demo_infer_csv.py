@@ -1,35 +1,27 @@
-from src.vitpose_infer import VitInference
 import cv2
 import csv
 import argparse
-import json
+from src.vitpose_infer import VitInference
 
 def make_keypoint_csv(input_video_path, output_csv_path, output_video_path, model_path):
     vid = cv2.VideoCapture(input_video_path)
     model = VitInference(model_path, yolo_path='yolov5n.engine', tensorrt=False)
     frame_counter = 0
 
-    # Default resolutions of the frame are obtained.The default resolutions are system dependent.
-    # We convert the resolutions from float to integer.
     frame_width = int(vid.get(3))
     frame_height = int(vid.get(4))
 
-    # Define the codec and create VideoWriter object.The output is stored in 'outpy.avi' file.
     out = cv2.VideoWriter(output_video_path, cv2.VideoWriter_fourcc('M', 'J', 'P', 'G'), 60,
                           (frame_width, frame_height))
 
-    # CSVファイルを開く
     with open(output_csv_path, mode='w', newline='') as file:
         writer = csv.writer(file)
-        # CSVファイルのヘッダーを書き込む
-        writer.writerow(['Frame', 'Track_ID', 'Coordinate'])
 
         while True:
             ret, frame = vid.read()
             if ret:
                 pts, tids, bboxes, drawn_frame, orig_frame = model.inference(frame, frame_counter)
 
-                # ptsの内容をデバッグ出力
                 print(f"Frame {frame_counter}: {pts}")
 
                 cv2.imshow("Video", drawn_frame)
@@ -38,20 +30,12 @@ def make_keypoint_csv(input_video_path, output_csv_path, output_video_path, mode
 
                 out.write(drawn_frame)
 
-                # 骨格点の座標とトラッキングIDを処理
                 if pts.size > 0:
-                    # トラッキングIDごとに座標を集める
-                    tracking_data = {}
                     for pt, tid in zip(pts, tids):
-                        x, y = pt[0], pt[1]  # 確信度は無視
-                        if tid not in tracking_data:
-                            tracking_data[tid] = []
-                        tracking_data[tid].append((x, y))
-
-                    # 各トラッキングIDとそれに関連する座標をCSVに書き込む
-                    for tid, coordinates in tracking_data.items():
-                        coord_str = '; '.join([f"({x}, {y})" for x, y in coordinates])
-                        writer.writerow([frame_counter, tid, coord_str])
+                        row = [frame_counter, tid]
+                        for p in pt:
+                            row.extend([p[0], p[1]])  # x, y coordinates
+                        writer.writerow(row)
 
             else:
                 break
@@ -68,8 +52,7 @@ if __name__ == "__main__":
     parser.add_argument("--output_video_path", default='third/ViTPose-Pytorch/output_video_vitpose.mp4', type=str, help="Output video.")
     parser.add_argument("--model_path", default='third/ViTPose-Pytorch/models/vitpose-b.pth', type=str, help="Model_path.")
 
-
     args = parser.parse_args()
     print(f'args:{args}')
 
-    make_keypoint_csv(input_video_path=args.input_video_path, output_csv_path=args.output_csv_path,output_video_path=args.output_video_path, model_path=args.model_path)
+    make_keypoint_csv(input_video_path=args.input_video_path, output_csv_path=args.output_csv_path, output_video_path=args.output_video_path, model_path=args.model_path)
