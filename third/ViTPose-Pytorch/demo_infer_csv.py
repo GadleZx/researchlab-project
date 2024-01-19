@@ -1,5 +1,4 @@
 import cv2
-import csv
 import argparse
 from src.vitpose_infer import VitInference
 
@@ -15,7 +14,6 @@ def make_keypoint_csv(input_video_path, output_csv_path, output_video_path, mode
                           (frame_width, frame_height))
 
     with open(output_csv_path, mode='w', newline='') as file:
-        writer = csv.writer(file)
 
         while True:
             ret, frame = vid.read()
@@ -32,10 +30,9 @@ def make_keypoint_csv(input_video_path, output_csv_path, output_video_path, mode
 
                 if pts.size > 0:
                     for pt, tid in zip(pts, tids):
-                        row = [frame_counter, tid]
-                        for p in pt:
-                            row.extend([p[0], p[1]])  # x, y coordinates
-                        writer.writerow(row)
+                        keypoints_str = ','.join([f"{p[0]},{p[1]}" for p in pt])
+                        row = f"{frame_counter},{tid},{keypoints_str}\n"
+                        file.write(row)
 
             else:
                 break
