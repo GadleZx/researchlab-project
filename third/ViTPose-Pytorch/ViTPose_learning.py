@@ -1,3 +1,4 @@
+import numpy as np
 import pandas as pd
 from torch.utils.data import Dataset, DataLoader
 import torch
@@ -9,17 +10,51 @@ class PoseDataset(Dataset):
         self.keypoints_data = pd.read_csv(keypoints_file)
         self.labels_data = pd.read_csv(labels_file)
 
+        print(f'self.keypoints_data:{self.keypoints_data}')
+        print(f'self.labels_data:{self.labels_data}')
+
+        # index or label may be wrong. keep separated?
         # ラベルデータをフレーム番号でマージ
-        self.data = pd.merge(self.keypoints_data, self.labels_data, on='Frame')
+        #self.data = pd.merge(self.keypoints_data, self.labels_data, on='Frame')
+
+        self.X = []
+        self.Y = []
+        self.YDict = dict()
+
+        # wrong approach, but easier to use
+        # create the label Y with the labeling
+        for index, row in self.labels_data.iterrows():
+            frame_num = row[0]
+            label = row[1]
+            label = 1 if label == 'Danger' else 0
+            self.YDict[frame_num] = label
+
+        for index, row in self.keypoints_data.iterrows():
+            # Access row elements using column names or index positions
+            #print("Row index:", index)
+            #print("Age:", row[1])  # Example using an index position
+            # Perform any operations on the row data here
+            frame_num = row[0]
+            id = row[1]
+            # data
+            arr = np.array(row[2:])
+            self.X.append(arr)
+            if frame_num in self.YDict:
+                self.Y.append(np.array(self.YDict[frame_num]))
+            else:
+                self.Y.append(0) # insert default value if no label was associated to the selected frame
 
     def __len__(self):
-        return len(self.data)
+        return len(self.X)
 
     def __getitem__(self, idx):
         # 骨格点データの平坦化
-        keypoints = self.flatten_keypoints(self.data.iloc[idx, :])
-        label = self.data.iloc[idx, -1]
-        label = 1 if label == 'Danger' else 0
+        #keypoints = self.flatten_keypoints(self.data.iloc[idx, :])
+        #label = self.data.iloc[idx, -1]
+        #label = 1 if label == 'Danger' else 0
+        #return {'keypoints': keypoints, 'label': label}
+        keypoints = torch.tensor(self.X[idx], dtype=torch.float32)
+        label = torch.tensor(self.Y[idx], dtype=torch.long)
         return {'keypoints': keypoints, 'label': label}
 
     @staticmethod
@@ -54,6 +89,8 @@ class PoseCNN(nn.Module):
 
 def train_model(model, criterion, optimizer, train_loader, epochs=5):
     for epoch in range(epochs):
+        print(f'epoch:{epoch}')
+        sum_loss = 0
         for i, data in enumerate(train_loader, 0):
             inputs = data['keypoints']
             labels = data['label']
@@ -64,7 +101,8 @@ def train_model(model, criterion, optimizer, train_loader, epochs=5):
             loss = criterion(outputs, labels)
             loss.backward()
             optimizer.step()
-
+            sum_loss += loss
+        print(f'sum_loss[{epoch}]:{sum_loss}')
 
 def evaluate_model(model, test_loader):
     model.eval()
