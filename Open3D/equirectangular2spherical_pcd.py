@@ -9,6 +9,18 @@ import numpy as np
 import open3d as o3d
 from PIL import Image
 
+def point2xyz(x, y, image_size):
+    # convert in uv -> spherical -> cartesian coordinates
+    u = float(x) / image_size[0]
+    v = float(y) / image_size[1]
+    theta = u * 2.0 * math.pi
+    phi = v * math.pi
+
+    x = math.cos(theta) * math.sin(phi)
+    y = math.sin(theta) * math.sin(phi)
+    z = math.cos(phi)
+    return x, y, z
+
 def uv2xyz(image_size, step):
     """
     It converts the content of the data structure from image pixels to cartesian coordinates
@@ -29,14 +41,18 @@ def uv2xyz(image_size, step):
     for i in range(0, data.shape[0]):
         for j in range(0, data.shape[1]):
             # convert in uv -> spherical -> cartesian coordinates
-            u = float(j * step) / image_size[0]
-            v = float(i * step) / image_size[1]
-            theta = u * 2.0 * math.pi
-            phi = v * math.pi
+            #u = float(j * step) / image_size[0]
+            #v = float(i * step) / image_size[1]
+            #theta = u * 2.0 * math.pi
+            #phi = v * math.pi
 
-            x = math.cos(theta) * math.sin(phi)
-            y = math.sin(theta) * math.sin(phi)
-            z = math.cos(phi)
+            #x = math.cos(theta) * math.sin(phi)
+            #y = math.sin(theta) * math.sin(phi)
+            #z = math.cos(phi)
+
+            # convert in uv -> spherical -> cartesian coordinates
+            x, y, z = point2xyz(float(j * step), float(i * step), image_size)
+
             #if z > 0.2: 
             #    x = 0
             #    y = 0

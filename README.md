@@ -132,6 +132,12 @@ Example (path to the video may be different)
 python demo_infer.py
 ```
 
+## MAP
+
+```Console
+python MAP/EstimateWorldPosition.py --input_video_path='data/data_002.mp4' --output_video_path='danger_output_video_v2.mp4' --localizationXY_path='data/localizationXY_cam/data_002_locXY.txt' --tracking_files_directory='data/tracking_data_002/' --label_path='data/danger_data_002.txt' --frame_step=10
+python MAP/Visualization.py --file_name="Open3D/result.pcd"
+```
 
 ## Link
 
