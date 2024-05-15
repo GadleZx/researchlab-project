@@ -1,5 +1,0 @@
-Dear Moro-san.
-After executing the code in the Visualization file, a point cloud of a room with chairs, etc. was displayed.There are no errors.
-I would like to change line 9 of the code to display a point cloud from the data I have. However, I need a .ply file to display it. I have looked at how to create a .ply file from jpg or mp4 files but have not been able to find any useful information.
-I would like to know how to use that code to display the point cloud from the data I have.
-Or I would like to know how to create .ply files.
