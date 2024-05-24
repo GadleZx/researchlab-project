@@ -10,7 +10,7 @@ sys.path.append('.')
 import math
 import argparse
 from pathlib import Path
-
+import csv 
 import numpy as np
 import open3d as o3d
 from PIL import Image
@@ -513,6 +513,30 @@ def estimate_distance(image_height, bounding_box, person_height, assumed_fov=180
 
     return distance
 
+def save_data_to_csv(data, filename):
+  """
+  Saves data to a CSV file.
+
+  Args:
+      data (list): List of lists containing data points (ID, frame_num, time, x, y, z).
+      filename (str): Path to the CSV file.
+  """
+
+  print(f'>>> data:{data}')
+
+  # Open the CSV file in append mode
+  with open(filename, 'a', newline='') as csvfile:
+    # Create a CSV writer object
+    writer = csv.writer(csvfile)
+
+    # Write header row if the file is empty
+    if csvfile.tell() == 0:
+      writer.writerow(['id', 'frame_num', 'time', 'x', 'y', 'z'])
+
+    # Write each data point to the CSV file
+    for row in data:
+      writer.writerow(row)
+
 def process_video(input_video_path, output_video_path, tracking_files_directory, localizationXY_path, label_path, frame_step):
     '''
     args
@@ -597,6 +621,9 @@ def process_video(input_video_path, output_video_path, tracking_files_directory,
     pc_track = []
     line_track = []
 
+    # Example usage inside a while loop
+    data_to_csv = []
+
     while True:
         # 動画からフレームを読み込む
         ret, frame = input_video.read()
@@ -631,7 +658,7 @@ def process_video(input_video_path, output_video_path, tracking_files_directory,
                 # collect all the points and color
                 np_points.append(np_points_tmp)
                 np_colors.append(np_colors_tmp)
-                opencv_wait_s = 0
+                #opencv_wait_s = 0
 
                 # バウンディングボックスの情報を読み取ります
                 with open(bbox_file_path, 'r') as file:
@@ -640,6 +667,7 @@ def process_video(input_video_path, output_video_path, tracking_files_directory,
                     for line in lines:
                         data = line.split()
 
+                        # Only snowboarder 3
                         id = int(data[0])
                         if id != 3:
                             continue
@@ -659,6 +687,7 @@ def process_video(input_video_path, output_video_path, tracking_files_directory,
                         # IDを動画フレームに描画
                         cv2.putText(frame, f'ID: {id}', (int(x1), int(y1 - 10)), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
 
+                        # Estimate the distance from the bouding box (naive)
                         bounding_box = {"top": y1, "left": x1, "bottom": y2, "right": x2}
                         person_height = 1.7  # meters
                         estimated_distance = estimate_distance(frame.shape[0], bounding_box, person_height)
@@ -672,6 +701,16 @@ def process_video(input_video_path, output_video_path, tracking_files_directory,
                     # apply the current camera pose
                     print(f'cam_pose[{cam_pose[frame_counter - 1]}]')
                     points = point_transform(pc_track_frame, cam_pose[frame_counter - 1])
+                    print(f'points:{points}')
+
+                    # camera
+                    data_to_csv.append([0, frame_counter, frame_counter * 30.0, points[0][0], points[0][1], points[0][2]])
+
+                    # Tracked snowboarder
+                    if len(points) > 1:
+                        data_to_csv.append([3, frame_counter, frame_counter * 30.0, points[1][0], points[1][1], points[1][2]])
+
+
                     line_track_frame = []
                     for i in range(1, len(points)):
                         line_track_frame.append([0, i])
@@ -695,6 +734,9 @@ def process_video(input_video_path, output_video_path, tracking_files_directory,
         # 描画されたフレームを出力動画に書き込む
         if do_save_video:
             output_video.write(frame)
+
+    # Save data to CSV file after the loop
+    save_data_to_csv(data_to_csv, 'data/data_002_trajectories.csv')
 
     # concatenate points and colors
     np_points_all = np.concatenate(np_points, axis=0)
