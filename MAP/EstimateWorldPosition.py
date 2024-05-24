@@ -388,7 +388,7 @@ def frame2pc_and_transform(img, pose):
     print(f'np_points:{np_points.shape}')
 
     # scale down the points size for better visualization (optional)
-    np_points *= 1.0
+    np_points *= 0.5 # 1.0
 
     # Transform the position
     # https://docs.scipy.org/doc/scipy/reference/generated/scipy.spatial.transform.Rotation.html
@@ -426,11 +426,11 @@ def point_transform(pc, pose):
 
     # Get the pointd data as numpy
     # From Open3D to numpy
-    np_points = np.asarray(pc)
+    np_points = np.asarray(pc).astype(np.float64)
     print(f'np_points:{np_points.shape}')
 
     # scale down the points size for better visualization (optional)
-    np_points *= 1.0
+    np_points *= 0.5
 
     # Transform the position
     # https://docs.scipy.org/doc/scipy/reference/generated/scipy.spatial.transform.Rotation.html
@@ -453,6 +453,65 @@ def point_transform(pc, pose):
     #print(f'np_pointsB:{np_points[100]}') # debug only
 
     return np_points
+
+def bbox2rays(x1, y1, x2, y2, w, h, estimated_distance):
+    container = []
+    # Add the direction vector
+    x, y, z = point2xyz((x1 + x2) // 2, (y1 + y2) // 2, [w, h])
+    x *= estimated_distance
+    y *= estimated_distance
+    z *= estimated_distance
+    print(f'ID3:{[x, y, z]}')
+    container.append([x, y, z])
+    x, y, z = point2xyz(x1, y1, [w, h])
+    x *= 10
+    y *= 10
+    z *= 10
+    container.append([x, y, z])
+    x, y, z = point2xyz(x2, y1, [w, h])
+    x *= 10
+    y *= 10
+    z *= 10
+    container.append([x, y, z])
+    x, y, z = point2xyz(x1, y2, [w, h])
+    x *= 10
+    y *= 10
+    z *= 10
+    container.append([x, y, z])
+    x, y, z = point2xyz(x2, y2, [w, h])
+    x *= 10
+    y *= 10
+    z *= 10
+    container.append([x, y, z])
+    return container
+
+def estimate_distance(image_height, bounding_box, person_height, assumed_fov=180):
+    """
+    Estimates distance to a person in an equirectangular image based on bounding box.
+
+    Args:
+        image_height: Height of the image in pixels (int).
+        bounding_box: Dictionary containing top, left, bottom, right coordinates of bounding box (int).
+        person_height: Assumed height of the person in meters (float).
+        assumed_fov: Assumed vertical field of view of the camera in degrees (float, optional).
+
+    Returns:
+        Estimated distance to the person in meters (float).
+    """
+
+    # Calculate person's height in pixels
+    person_height_pixels = bounding_box["bottom"] - bounding_box["top"]
+    print(f'person_height_pixels: {person_height_pixels}')
+
+    # Calculate angular height in radians
+    angular_height = (person_height_pixels / image_height) * math.radians(assumed_fov)
+    print(f'angular_height (radians): {angular_height}')
+
+    # Solve for distance using assumed height and angular height
+    distance = person_height / math.tan(angular_height)
+    print(f'distance: {distance}')
+
+    return distance
 
 def process_video(input_video_path, output_video_path, tracking_files_directory, localizationXY_path, label_path, frame_step):
     '''
@@ -520,6 +579,11 @@ def process_video(input_video_path, output_video_path, tracking_files_directory,
             data = np.fromstring(s_cam_pose, dtype=float, sep=' ')
             frame_num = data[0] / video_frame_ms
             cam_pose[round(frame_num)] = data[1:]
+
+            # revert vertically
+            cam_pose[round(frame_num)][2] *= -1
+            cam_pose[round(frame_num)][1] *= -1
+
             #print(f'rame_num:{frame_num} round:{round(frame_num)} data[0]:{data[0]}')
     #print(f'cam_pose:{cam_pose}') 
 
@@ -545,6 +609,9 @@ def process_video(input_video_path, output_video_path, tracking_files_directory,
         frame_counter += 1
         if frame_counter % frame_step != 0:
             continue
+
+        #if frame_counter < 301:
+        #    continue
 
         # Danger level for the current frame
         # Lower, safer
@@ -574,6 +641,8 @@ def process_video(input_video_path, output_video_path, tracking_files_directory,
                         data = line.split()
 
                         id = int(data[0])
+                        if id != 3:
+                            continue
                         if id not in id_colors:
                             id_colors[id] = (random.randint(0, 255), random.randint(0, 255), random.randint(0, 255))
                         # IDに割り当てられた色を取得
@@ -590,13 +659,18 @@ def process_video(input_video_path, output_video_path, tracking_files_directory,
                         # IDを動画フレームに描画
                         cv2.putText(frame, f'ID: {id}', (int(x1), int(y1 - 10)), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
 
+                        bounding_box = {"top": y1, "left": x1, "bottom": y2, "right": x2}
+                        person_height = 1.7  # meters
+                        estimated_distance = estimate_distance(frame.shape[0], bounding_box, person_height)
+                        print("Estimated distance:", estimated_distance, "meters")                            
+
                         # Add the direction vector
-                        x, y, z = point2xyz((x1 + x2) // 2, (y1 + y2) // 2, [frame.shape[1], frame.shape[0]])
-                        x *= 10
-                        y *= 10
-                        z *= 10
-                        pc_track_frame.append([x, y, z])
+                        container = bbox2rays(x1, y1, x2, y2, frame.shape[1], frame.shape[0], estimated_distance)
+                        for c in container:
+                            pc_track_frame.append(c)
+                            break
                     # apply the current camera pose
+                    print(f'cam_pose[{cam_pose[frame_counter - 1]}]')
                     points = point_transform(pc_track_frame, cam_pose[frame_counter - 1])
                     line_track_frame = []
                     for i in range(1, len(points)):

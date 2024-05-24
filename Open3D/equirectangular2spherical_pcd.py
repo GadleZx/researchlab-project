@@ -9,7 +9,7 @@ import numpy as np
 import open3d as o3d
 from PIL import Image
 
-def point2xyz(x, y, image_size):
+def point2xyz_old(x, y, image_size):
     # convert in uv -> spherical -> cartesian coordinates
     u = float(x) / image_size[0]
     v = float(y) / image_size[1]
@@ -20,6 +20,25 @@ def point2xyz(x, y, image_size):
     y = math.sin(theta) * math.sin(phi)
     z = math.cos(phi)
     return x, y, z
+
+def point2xyz(x, y, image_size):
+    # convert in uv -> spherical -> cartesian coordinates
+    u = float(x) / image_size[0]
+    v = float(y) / image_size[1]
+    theta = u * 2.0 * math.pi
+    phi = v * math.pi
+
+    # Rotate 90 degrees horizontally by adding π/2 to theta
+    theta += math.pi / 2.0
+
+    # Ensure theta stays within 0 to 2π
+    theta = theta % (2.0 * math.pi)
+
+    x = math.cos(theta) * math.sin(phi)
+    y = -math.sin(theta) * math.sin(phi)
+    z = math.cos(phi)
+    return x, y, z
+
 
 def uv2xyz(image_size, step):
     """
