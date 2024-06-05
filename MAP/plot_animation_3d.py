@@ -28,9 +28,9 @@ for i, id_value in enumerate(unique_ids):
     
     # Initialize scatter plot for each ID with the first frame's data
     initial_frame_data = id_data[id_data["frame_num"] == id_data["frame_num"].min()]
-    scatter = ax.scatter(initial_frame_data["x"], initial_frame_data["y"], initial_frame_data["z"], color=colors[i], label=f"ID: {id_value}", s=100)
+    scatter = ax.scatter(initial_frame_data["x"], initial_frame_data["y"], initial_frame_data["z"], c=np.array([colors[i]]), label=f"ID: {id_value}", s=100)
     scatter_dict[id_value] = scatter
-
+    
 # Customize the plot
 ax.set_xlabel("X-position")
 ax.set_ylabel("Y-position")
