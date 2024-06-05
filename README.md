@@ -147,8 +147,10 @@ python third/ViTPose-Pytorch/frame_label_make_csv.py --input_video_path='data/da
 ## MAP
 
 ```Console
-python MAP/EstimateWorldPosition.py --input_video_path='data/data_002.mp4' --output_video_path='danger_output_video_v2.mp4' --localizationXY_path='data/localizationXY_cam/data_002_locXY.txt' --tracking_files_directory='data/tracking_data_002/' --label_path='data/danger_data_002.txt' --frame_step=10
-python Open3D/Visualization.py --file_name="Open3D/result.pcd"
+python MAP/EstimateWorldPosition.py --input_video_path='data/data_002.mp4' --output_video_path='danger_output_video_v2.mp4' --localizationXY_path='data/localizationXY_cam/data_002_locXY.txt' --tracking_files_directory='data/tracking_data_002/' --label_path='data/danger_data_002.txt' --frame_step=5
+python MAP/plot_3d.py
+python MAP/plot_animation_3d.py
+python MAP/Visualization.py --file_name="Open3D/result.pcd"
 ```
 
 ## Link
