@@ -5,10 +5,13 @@ import torch.nn as nn
 import torch.optim as optim
 from torch.utils.data import Dataset, DataLoader
 import matplotlib.pyplot as plt
+import einops
 
 # ディレクトリの指定
-train_directory = '/home/umelab3d/workspace/researchlab-project/third/ViTPose-Pytorch/new_keypoint_csv'
-val_directory = '/home/umelab3d/workspace/researchlab-project/third/ViTPose-Pytorch/new_val_keypoint_csv'
+#train_directory = '/home/umelab3d/workspace/researchlab-project/third/ViTPose-Pytorch/new_keypoint_csv'
+#val_directory = '/home/umelab3d/workspace/researchlab-project/third/ViTPose-Pytorch/new_val_keypoint_csv'
+train_directory = 'data/action/new_keypoint_csv'
+val_directory = 'data/action/new_val_keypoint_csv'
 
 # Hyperparameters
 sequence_length = 30  # number of frames in each sequence
@@ -103,26 +106,38 @@ def load_csv_files_from_directory(directory):
 # トレーニングとバリデーションデータの読み込み
 df_train = load_csv_files_from_directory(train_directory)
 df_val = load_csv_files_from_directory(val_directory)
+#print(f'df_train:{df_train}')
 
 # 必要なデータの抽出
-X_train = df_train.drop(columns=['Label', 'Tracking_ID']).values
+X_train = df_train.drop(columns=['Frame', 'Label', 'Tracking ID']).values
 y_train = df_train['Label'].values
-tracking_ids_train = df_train['Tracking_ID'].values
+tracking_ids_train = df_train['Tracking ID'].values
 
-X_val = df_val.drop(columns=['Label', 'Tracking_ID']).values
+X_val = df_val.drop(columns=['Frame', 'Label', 'Tracking ID']).values
 y_val = df_val['Label'].values
-tracking_ids_val = df_val['Tracking_ID'].values
+tracking_ids_val = df_val['Tracking ID'].values
 
 # データの形状を (num_samples, sequence_length, num_keypoints) に変換
 def reshape_data(X, y, tracking_ids, sequence_length, num_keypoints):
-    num_samples = len(X) // (sequence_length * num_keypoints)
+    num_samples = len(X) // (sequence_length)# * num_keypoints)
+    print(f'X:{type(X)} Xshape:{X.shape} Xlen:{len(X)} y:{type(y)} yshape:{y.shape} ylen:{len(y)} num_samples:{num_samples} sequence_length:{sequence_length} num_keypoints:{num_keypoints}')
+    X = X[:num_samples * sequence_length]
+    y = y[:num_samples * sequence_length]
+    y = y[::sequence_length] # slicing
+    print(f'X:{type(X)} Xshape:{X.shape} Xlen:{len(X)} y:{type(y)} yshape:{y.shape} ylen:{len(y)}')
+
+    X = einops.rearrange(X, '(n l) k -> n l k', n=num_samples, l=sequence_length, k=num_keypoints)
     X = X[:num_samples * sequence_length * num_keypoints].reshape(num_samples, sequence_length, num_keypoints)
-    y = y[:num_samples * sequence_length:sequence_length]
-    tracking_ids = tracking_ids[:num_samples * sequence_length:sequence_length]
+    print(f'X:{type(X)} Xshape:{X.shape} Xlen:{len(X)} y:{type(y)} yshape:{y.shape} ylen:{len(y)}')
+    tracking_ids = tracking_ids[:num_samples * sequence_length]
+    tracking_ids = tracking_ids[::sequence_length]
     return X, y, tracking_ids
 
 X_train, y_train, tracking_ids_train = reshape_data(X_train, y_train, tracking_ids_train, sequence_length, num_keypoints)
 X_val, y_val, tracking_ids_val = reshape_data(X_val, y_val, tracking_ids_val, sequence_length, num_keypoints)
+
+print(f'X_train:{X_train.shape} y_train:{y_train.shape} tracking_ids_train:{tracking_ids_train.shape}')
+print(f'X_val:{X_val.shape} y_val:{y_val.shape} tracking_ids_val:{tracking_ids_val.shape}')
 
 # データセットとデータローダーの作成
 train_dataset = PoseDataset(X_train, y_train, tracking_ids_train)
@@ -149,6 +164,7 @@ for epoch in range(num_epochs):
     for data, labels, tracking_ids in train_loader:
         outputs = model(data)
         loss = criterion(outputs, labels)
+        #print(f'outputs:{outputs} labels:{labels}')
 
         optimizer.zero_grad()
         loss.backward()
@@ -236,10 +252,11 @@ file_accuracies = []
 
 val_files = [f for f in os.listdir(val_directory) if f.endswith('.csv')]
 for filename in val_files:
+    print(f'fname:{filename}')
     df = pd.read_csv(os.path.join(val_directory, filename))
-    X_val = df.drop(columns=['Label', 'Tracking_ID']).values
+    X_val = df.drop(columns=['Frame', 'Label', 'Tracking ID']).values
     y_val = df['Label'].values
-    tracking_ids_val = df['Tracking_ID'].values
+    tracking_ids_val = df['Tracking ID'].values
 
     # データの形状を (num_samples, sequence_length, num_keypoints) に変換
     X_val, y_val, tracking_ids_val = reshape_data(X_val, y_val, tracking_ids_val, sequence_length, num_keypoints)
