@@ -6,6 +6,7 @@ import torch.optim as optim
 from torch.utils.data import Dataset, DataLoader
 import matplotlib.pyplot as plt
 import einops
+import numpy as np
 
 # ディレクトリの指定
 #train_directory = '/home/umelab3d/workspace/researchlab-project/third/ViTPose-Pytorch/new_keypoint_csv'
@@ -103,35 +104,128 @@ def load_csv_files_from_directory(directory):
             all_files.append(df)
     return pd.concat(all_files, ignore_index=True)
 
+def process_data_by_tracking_id(df, N):
+    # Sort by Tracking ID
+    df = df.sort_values(by='Tracking ID')
+
+    # Group by Tracking ID
+    grouped = df.groupby('Tracking ID')
+
+    # Initialize lists to store the results
+    X_train_chunks = []
+    y_train_chunks = []
+    tracking_ids_chunks = []
+    
+    # Iterate over each group
+    for _, group in grouped:
+        num_chunks = len(group) // N
+        for i in range(num_chunks):
+            chunk = group.iloc[i*N : (i+1)*N]
+            X_train_chunks.append(chunk.drop(columns=['Frame', 'Label', 'Tracking ID']).values)
+            y_train_chunks.append(chunk['Label'].values)
+            tracking_ids_chunks.append(chunk['Tracking ID'].values)
+
+    return np.array(X_train_chunks), np.array(y_train_chunks), np.array(tracking_ids_chunks)
+
 # トレーニングとバリデーションデータの読み込み
 df_train = load_csv_files_from_directory(train_directory)
 df_val = load_csv_files_from_directory(val_directory)
 #print(f'df_train:{df_train}')
 
-# 必要なデータの抽出
-X_train = df_train.drop(columns=['Frame', 'Label', 'Tracking ID']).values
-y_train = df_train['Label'].values
-tracking_ids_train = df_train['Tracking ID'].values
+# # 必要なデータの抽出
+# X_train = df_train.drop(columns=['Frame', 'Label', 'Tracking ID']).values
+# y_train = df_train['Label'].values
+# tracking_ids_train = df_train['Tracking ID'].values
 
-X_val = df_val.drop(columns=['Frame', 'Label', 'Tracking ID']).values
-y_val = df_val['Label'].values
-tracking_ids_val = df_val['Tracking ID'].values
+# X_val = df_val.drop(columns=['Frame', 'Label', 'Tracking ID']).values
+# y_val = df_val['Label'].values
+# tracking_ids_val = df_val['Tracking ID'].values
+
+# Process the data
+X_train, y_train, tracking_ids_train = process_data_by_tracking_id(df_train, sequence_length)
+X_val, y_val, tracking_ids_val = process_data_by_tracking_id(df_val, sequence_length)
+print(f"Shapes X_train:{X_train.shape} y_train:{y_train.shape} tracking_ids_train:{tracking_ids_train.shape}")
+print(f"Shapes X_val:{X_val.shape} y_val:{y_val.shape} tracking_ids_val:{tracking_ids_val.shape}")
+
+# Get the unique values
+unique_values = np.unique(y_train)
+print("Unique values in y_train:", unique_values)
+unique_values = np.unique(y_val)
+print("Unique values in y_val:", unique_values)
+
+
+def common_instances(y):
+    from scipy.stats import mode
+    # Initialize arrays to store the most and least common values for each row
+    most_common_values = np.zeros(y.shape[0])
+    least_common_values = np.zeros(y.shape[0])
+
+    for i in range(y.shape[0]):
+        row = y[i]
+        # Find the most common value
+        most_common_value, _ = mode(row)
+        if isinstance(most_common_value, np.ndarray):
+            most_common_value = most_common_value[0]
+        most_common_values[i] = most_common_value
+
+        # Find the least common value
+        unique, counts = np.unique(row, return_counts=True)
+        if len(unique) == 1:
+            # All values in the row are the same
+            least_common_value = unique[0]
+        else:
+            least_common_value = unique[np.argmin(counts)]
+        least_common_values[i] = least_common_value
+
+    # Combine into a new array based on the requirement
+    # For example, you can choose the most common value
+    result_most_common = most_common_values
+
+    # Or you can choose the least common value
+    result_least_common = least_common_values
+
+    return result_most_common, result_least_common
+
+result_most_common_train, result_least_common_train = common_instances(y_train)
+# Print the results
+print("Array with most common values:", result_most_common_train)
+print("Array with least common values:", result_least_common_train)
+y_train = result_most_common_train
+
+result_most_common_val, result_least_common_val = common_instances(y_val)
+# Print the results
+print("Array with most common values:", result_most_common_val)
+print("Array with least common values:", result_least_common_val)
+y_val = result_most_common_val
+
+# transform IDs (N, L) -> (N)
+tracking_ids_train, _ = common_instances(tracking_ids_train)
+tracking_ids_val, _ = common_instances(tracking_ids_val)
+
+
+# # データの形状を (num_samples, sequence_length, num_keypoints) に変換
+# def reshape_data(X, y, tracking_ids, sequence_length, num_keypoints):
+#     num_samples = len(X) // (sequence_length)# * num_keypoints)
+#     print(f'X:{type(X)} Xshape:{X.shape} Xlen:{len(X)} y:{type(y)} yshape:{y.shape} ylen:{len(y)} num_samples:{num_samples} sequence_length:{sequence_length} num_keypoints:{num_keypoints}')
+#     X = X[:num_samples * sequence_length]
+#     y = y[:num_samples * sequence_length]
+#     y = y[::sequence_length] # slicing
+#     print(f'X:{type(X)} Xshape:{X.shape} Xlen:{len(X)} y:{type(y)} yshape:{y.shape} ylen:{len(y)}')
+
+#     X = einops.rearrange(X, '(n l) k -> n l k', n=num_samples, l=sequence_length, k=num_keypoints)
+#     X = X[:num_samples * sequence_length * num_keypoints].reshape(num_samples, sequence_length, num_keypoints)
+#     print(f'X:{type(X)} Xshape:{X.shape} Xlen:{len(X)} y:{type(y)} yshape:{y.shape} ylen:{len(y)}')
+#     tracking_ids = tracking_ids[:num_samples * sequence_length]
+#     tracking_ids = tracking_ids[::sequence_length]
+#     return X, y, tracking_ids
 
 # データの形状を (num_samples, sequence_length, num_keypoints) に変換
 def reshape_data(X, y, tracking_ids, sequence_length, num_keypoints):
-    num_samples = len(X) // (sequence_length)# * num_keypoints)
-    print(f'X:{type(X)} Xshape:{X.shape} Xlen:{len(X)} y:{type(y)} yshape:{y.shape} ylen:{len(y)} num_samples:{num_samples} sequence_length:{sequence_length} num_keypoints:{num_keypoints}')
-    X = X[:num_samples * sequence_length]
-    y = y[:num_samples * sequence_length]
-    y = y[::sequence_length] # slicing
-    print(f'X:{type(X)} Xshape:{X.shape} Xlen:{len(X)} y:{type(y)} yshape:{y.shape} ylen:{len(y)}')
-
-    X = einops.rearrange(X, '(n l) k -> n l k', n=num_samples, l=sequence_length, k=num_keypoints)
-    X = X[:num_samples * sequence_length * num_keypoints].reshape(num_samples, sequence_length, num_keypoints)
-    print(f'X:{type(X)} Xshape:{X.shape} Xlen:{len(X)} y:{type(y)} yshape:{y.shape} ylen:{len(y)}')
-    tracking_ids = tracking_ids[:num_samples * sequence_length]
-    tracking_ids = tracking_ids[::sequence_length]
+    print(f'X:{type(X)} Xshape:{X.shape} Xlen:{len(X)} y:{type(y)} yshape:{y.shape} ylen:{len(y)} sequence_length:{sequence_length} num_keypoints:{num_keypoints}')
+    print(f'y:{y}')
+    print(f'tracking_ids:{tracking_ids}')
     return X, y, tracking_ids
+
 
 X_train, y_train, tracking_ids_train = reshape_data(X_train, y_train, tracking_ids_train, sequence_length, num_keypoints)
 X_val, y_val, tracking_ids_val = reshape_data(X_val, y_val, tracking_ids_val, sequence_length, num_keypoints)
